@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2b36">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>זרימה - ויסות רגשי</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#1d2b36; --bg2:#243645; --card:#2b4050; --line:#3b5568;
+  --ink:#eef3f1; --mute:#a9bcc4; --accent:#8fd3b6; --accent2:#f2c48d; --warn:#e9967a;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(120% 80% at 50% 0%,#2c4556 0%,var(--bg) 60%);
+  color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Rubik,Arial,sans-serif;
+  font-size:17px;line-height:1.5;overscroll-behavior:none;
+}
+.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+.brand{font-weight:700;letter-spacing:.3px;color:var(--accent)}
+.iconbtn{background:none;border:1px solid var(--line);color:var(--ink);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer}
+.progress{height:4px;background:var(--bg2);border-radius:4px;margin:10px 0 18px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.screen{display:none;flex:1;flex-direction:column;gap:16px;animation:fade .35s ease}
+.screen.on{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:24px;line-height:1.3;margin:0}
+h2{font-size:20px;margin:0}
+.prompt{font-size:20px;line-height:1.45;margin:0}
+.sub{color:var(--mute);margin:0;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:12px 18px;border-radius:999px;font-size:17px;cursor:pointer;min-height:48px}
+.chip:active,.num:active,.btn:active{transform:scale(.97)}
+.field{display:flex;gap:8px;align-items:stretch}
+input[type=text],textarea{flex:1;width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--ink);
+  border-radius:14px;padding:13px 14px;font:inherit;resize:none}
+textarea{min-height:76px}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+label{font-size:15px;color:var(--mute);display:block;margin-bottom:6px}
+.mic{flex:none;width:52px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;cursor:pointer}
+.mic.rec{background:var(--warn);color:#1d2b36;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.nums{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;direction:ltr}
+.nums.eleven{grid-template-columns:repeat(6,1fr)}
+.num{aspect-ratio:1;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:600;cursor:pointer}
+.btn{border:none;border-radius:16px;padding:17px 18px;font:inherit;font-size:18px;font-weight:600;cursor:pointer;
+  background:var(--accent);color:#14232c;width:100%;min-height:56px}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
+.btn.warm{background:var(--accent2)}
+.spacer{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.quote{border-right:3px solid var(--accent2);padding:6px 12px;color:var(--ink);background:var(--bg2);border-radius:8px;font-style:italic}
+.figure{display:flex;justify-content:center}
+.figure svg{width:100%;max-width:300px;height:auto}
+.hand{transition:transform .12s}
+.tapL .hand.l,.tapR .hand.r{transform:translateY(7px)}
+.timer{font-size:68px;font-weight:300;text-align:center;letter-spacing:2px;direction:ltr;font-variant-numeric:tabular-nums;margin:6px 0}
+.orbs{display:flex;justify-content:space-between;align-items:center;padding:0 6px;direction:ltr}
+.orb{width:116px;height:116px;border-radius:50%;background:radial-gradient(circle,#2f4a5b 0%,#243645 70%);
+  border:1px solid var(--line);transition:background .15s,box-shadow .15s,transform .15s}
+.orb.lit{background:radial-gradient(circle,#c9f0df 0%,var(--accent) 45%,#3b6e5f 100%);box-shadow:0 0 50px 8px rgba(143,211,182,.45);transform:scale(1.05)}
+.ring{height:6px;background:var(--bg2);border-radius:6px;overflow:hidden}
+.ring i{display:block;height:100%;background:var(--accent);width:0;transition:width 1s linear}
+.center{text-align:center}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.yn .chip.sel,.chip.sel{background:var(--accent);color:#14232c;border-color:var(--accent)}
+.hidden{display:none!important}
+.bridge{font-size:22px;line-height:1.5;text-align:center;margin:auto 0}
+.count{font-size:15px;color:var(--mute);text-align:center}
+svg.spark{width:100%;height:150px;direction:ltr}
+.hist{display:flex;flex-direction:column;gap:10px}
+.hist .card{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hist small{color:var(--mute)}
+.badge{font-size:13px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--mute);direction:ltr}
+.disc{font-size:13px;color:var(--mute);text-align:center}
+dialog{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:22px;width:min(92vw,440px);padding:20px}
+dialog::backdrop{background:rgba(10,18,24,.65)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0}
+input[type=range]{width:55%;accent-color:var(--accent)}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="iconbtn" id="btnHome" aria-label="בית" title="בית">⌂</button>
+    <div class="brand">זרימה</div>
+    <button class="iconbtn" id="btnSettings" aria-label="הגדרות" title="הגדרות">⚙</button>
+  </header>
+  <div class="progress"><i id="prog"></i></div>
+
+  <!-- 0. HOME -->
+  <section class="screen on" data-step="0">
+    <h1>רגע לעצור, לנשום ולפרוק</h1>
+    <p class="sub">תהליך קצר: מזהים רגש, מעגנים זיכרון, ומתופפים לסירוגין ימין-שמאל בסיבובים של דקה עד שהעומס יורד ל-0.</p>
+    <div class="card">
+      <p class="sub" style="margin-bottom:6px">לפני שמתחילים</p>
+      <div>מקום שקט, ישיבה נוחה, ואם אפשר אוזניות. הקליקים זזים בין האוזן השמאלית לימנית.</div>
+    </div>
+    <button class="btn" id="btnStart">להתחיל תהליך</button>
+    <div id="homeHist" class="hist"></div>
+    <div class="spacer"></div>
+    <p class="disc">כלי לוויסות עצמי, לא טיפול רפואי ולא תחליף לאיש מקצוע. הכול נשמר רק במכשיר שלך.</p>
+  </section>
+
+  <!-- 1. EMOTION -->
+  <section class="screen" data-step="1">
+    <p class="prompt">מה הרגש שעולה בך עכשיו? בחר מהרשימה או כתוב במילה אחת.</p>
+    <div class="chips" id="emoChips"></div>
+    <div class="field">
+      <input type="text" id="emoText" placeholder="רגש אחר..." enterkeyhint="next">
+      <button class="mic" data-target="emoText" aria-label="הקלטה">🎙</button>
+    </div>
+    <button class="btn ghost" id="emoNext">המשך</button>
+  </section>
+
+  <!-- 2. BASELINE -->
+  <section class="screen" data-step="2">
+    <p class="prompt">באיזו עוצמה <b id="emoName"></b> מורגש כרגע? בין 1 ל-10.</p>
+    <div class="nums" id="baseNums"></div>
+    <p class="sub center">1 = בקושי מורגש · 10 = הכי חזק שיש</p>
+  </section>
+
+  <!-- 3. ANCHOR -->
+  <section class="screen" data-step="3">
+    <p class="prompt">מתי הפעם המוקדמת ביותר שאתה זוכר שהרגשת ככה? מקם את זה בזמן, במקום ועם מי היית.</p>
+    <div>
+      <label for="anTime">איפה ומתי?</label>
+      <div class="field"><input type="text" id="anTime" placeholder="למשל: גיל 8, בבית הספר"><button class="mic" data-target="anTime">🎙</button></div>
+    </div>
+    <div>
+      <label for="anPerson">עם מי?</label>
+      <div class="field"><input type="text" id="anPerson" placeholder="למשל: עם המורה"><button class="mic" data-target="anPerson">🎙</button></div>
+    </div>
+    <div>
+      <label for="anThought">מה המחשבה המרכזית שמתרוצצת בראש כעת סביב זה?</label>
+      <div class="field"><textarea id="anThought" placeholder="המשפט שחוזר בראש..."></textarea><button class="mic" data-target="anThought">🎙</button></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="anNext">קבע עוגן והמשך</button>
+  </section>
+
+  <!-- 4. POSTURE -->
+  <section class="screen" data-step="4">
+    <p class="prompt">הנח שתי רגליים יציבות על הרצפה, כפות ידיים נחות על הירכיים. בסיבוב הזה נתופף לסירוגין ימין-שמאל בעיניים עצומות.</p>
+    <div class="figure" id="figure">
+      <svg viewBox="0 0 300 260" aria-hidden="true">
+        <g fill="none" stroke="#a9bcc4" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="150" cy="40" r="22" fill="#2b4050"/>
+          <path d="M150 64 V140"/>
+          <path d="M150 140 H100 V215 M150 140 H200 V215"/>
+          <path d="M88 218 H112 M188 218 H212"/>
+          <path d="M150 82 L112 118 L104 132"/>
+          <path d="M150 82 L188 118 L196 132"/>
+        </g>
+        <rect x="60" y="226" width="180" height="6" rx="3" fill="#3b5568"/>
+        <g class="hand l"><ellipse cx="104" cy="134" rx="13" ry="8" fill="#8fd3b6"/></g>
+        <g class="hand r"><ellipse cx="196" cy="134" rx="13" ry="8" fill="#8fd3b6"/></g>
+        <text x="104" y="166" text-anchor="middle" fill="#a9bcc4" font-size="13">שמאל</text>
+        <text x="196" y="166" text-anchor="middle" fill="#a9bcc4" font-size="13">ימין</text>
+      </svg>
+    </div>
+    <p class="sub center" id="roundLabel4"></p>
+    <div class="spacer"></div>
+    <button class="btn" id="btnBegin">התחל סיבוב (60 שניות)</button>
+  </section>
+
+  <!-- 5. TAPPING -->
+  <section class="screen" data-step="5">
+    <p class="sub center" id="roundLabel5"></p>
+    <p class="prompt center">עצום עיניים ותן למחשבות לזרום חופשי מבלי לעצור אותן.</p>
+    <div class="timer" id="timer">01:00</div>
+    <div class="ring"><i id="ring"></i></div>
+    <div class="orbs"><div class="orb" id="orbL"></div><div class="orb" id="orbR"></div></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnStop">עצור סיבוב מוקדם</button>
+  </section>
+
+  <!-- 6. RE-OBSERVE -->
+  <section class="screen" data-step="6">
+    <p class="prompt">מה שמת לב? מה ראית או הבחנת בזרם המחשבות בדקה הזו?</p>
+    <div class="field"><textarea id="obsText" placeholder="תמונה, תחושה, מחשבה, זיכרון..."></textarea><button class="mic" data-target="obsText">🎙</button></div>
+    <p class="prompt" style="font-size:18px">עכשיו, כשאתה חוזר וחושב על המחשבה המקורית:</p>
+    <div class="quote" id="thoughtQuote"></div>
+    <p class="sub">מה רמת הסטרס עכשיו, מ-0 עד 10?</p>
+    <div class="nums eleven" id="reNums"></div>
+  </section>
+
+  <!-- 6b. BRIDGE -->
+  <section class="screen" data-step="6.5">
+    <p class="bridge">קח את מה ששמת לב אליו עכשיו, החזק אותו בקצרה במחשבה, ונמשיך מיד לסיבוב הבא.</p>
+    <div class="quote center hidden" id="bridgeObs"></div>
+    <p class="count" id="bridgeCount"></p>
+    <button class="btn" id="btnBridge">לסיבוב הבא עכשיו</button>
+  </section>
+
+  <!-- 7. INTEGRATION -->
+  <section class="screen" data-step="7">
+    <h2>הגעת ל-0 ✦</h2>
+    <p class="prompt">כשאתה נזכר כעת באירוע המקורי ההוא, במקום ההוא עם אותו אדם, האם זה עדיין מפעיל או נוגע בך?</p>
+    <div class="quote" id="rootQuote"></div>
+    <div class="yn"><button class="chip" id="ynNo">לא, זה רגוע</button><button class="chip" id="ynYes">כן, עדיין נוגע</button></div>
+    <div id="rootRateWrap" class="hidden">
+      <p class="sub">כמה זה נוגע, 0 עד 10?</p>
+      <div class="nums eleven" id="rootNums"></div>
+      <button class="btn warm" id="btnMore" style="margin-top:12px">סיבוב נוסף על האירוע המקורי</button>
+    </div>
+    <div>
+      <label for="learnText">מה אתה לומד חדש על עצמך מתוך התהליך הזה?</label>
+      <div class="field"><textarea id="learnText"></textarea><button class="mic" data-target="learnText">🎙</button></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnFinish">סיום ושמירה</button>
+  </section>
+
+  <!-- 8. SUMMARY -->
+  <section class="screen" data-step="8">
+    <h2>המסלול שלך היום</h2>
+    <div class="card"><svg class="spark" id="spark" viewBox="0 0 320 150"></svg></div>
+    <div class="card" id="sumCard"></div>
+    <button class="btn" id="btnAgain">תהליך חדש</button>
+    <h2 style="margin-top:8px">יומן</h2>
+    <div class="hist" id="histList"></div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <h2>הגדרות</h2>
+  <div class="row"><span>קצב תיפוף <b id="bpmVal"></b></span><input type="range" id="setBpm" min="40" max="120" step="4"></div>
+  <div class="row"><span>עוצמה</span><input type="range" id="setVol" min="0" max="1" step="0.05"></div>
+  <div class="row"><span>צליל</span>
+    <select id="setSound"><option value="snap">נקישת אצבע</option><option value="wood">עץ</option><option value="metronome">מטרונום</option></select></div>
+  <div class="row"><span>הקראה קולית</span><input type="checkbox" id="setTts" style="width:24px;height:24px;accent-color:#8fd3b6"></div>
+  <div class="row"><button class="btn ghost" id="setTest" style="width:auto;padding:10px 16px;min-height:0">בדיקת צליל</button>
+    <button class="btn ghost" id="setClear" style="width:auto;padding:10px 16px;min-height:0;color:var(--warn)">מחיקת יומן</button></div>
+  <button class="btn" id="setClose">סגור</button>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const EMOTIONS = ['חרדה','כעס','תסכול','חוסר אונים','פחד','עומס/לחץ','אשמה'];
+const ROUND_SECONDS = 60;
+
+// 1. AudioEngine: synthesized clicks and soft bell
+const AudioEngine = {
+  ctx: null,
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  out(side) {
+    const g = this.ctx.createGain();
+    g.gain.value = StorageManager.prefs.audioVolume;
+    let node = g;
+    if (this.ctx.createStereoPanner) {
+      const p = this.ctx.createStereoPanner();
+      p.pan.value = side === 'left' ? -0.85 : side === 'right' ? 0.85 : 0;
+      g.connect(p); p.connect(this.ctx.destination);
+    } else g.connect(this.ctx.destination);
+    return node;
+  },
+  playFingerClick(side = 'center') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, type = StorageManager.prefs.clickSoundType;
+    const dest = this.out(side);
+    if (type === 'metronome') {
+      const o = this.ctx.createOscillator(), e = this.ctx.createGain();
+      o.frequency.value = side === 'left' ? 1000 : 1200;
+      e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.6, t + 0.002);
+      e.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      o.connect(e); e.connect(dest); o.start(t); o.stop(t + 0.06);
+      return;
+    }
+    const len = Math.floor(this.ctx.sampleRate * 0.06);
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, type === 'wood' ? 6 : 12);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const bp = this.ctx.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = type === 'wood' ? 900 : 2600; bp.Q.value = type === 'wood' ? 6 : 1.5;
+    const e = this.ctx.createGain(); e.gain.value = type === 'wood' ? 3 : 1.6;
+    src.connect(bp); bp.connect(e); e.connect(dest); src.start(t);
+  },
+  playSoftChime() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, dest = this.out('center');
+    [[528, 0.5], [1056, 0.18], [1584, 0.08], [792, 0.12]].forEach(([f, a]) => {
+      const o = this.ctx.createOscillator(), e = this.ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(a, t + 0.03);
+      e.gain.exponentialRampToValueAtTime(0.0001, t + 5);
+      o.connect(e); e.connect(dest); o.start(t); o.stop(t + 5.1);
+    });
+  },
+  tick() { this.playFingerClick('center'); }
+};
+
+// 2. SpeechEngine: TTS prompts and speech-to-text
+const SpeechEngine = {
+  synth: window.speechSynthesis,
+  speak(text) {
+    if (!text || !this.synth || !StorageManager.prefs.enableSpeechPrompts) return;
+    this.synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'he-IL'; u.rate = 0.95;
+    const v = this.synth.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('he'));
+    if (v) u.voice = v;
+    this.synth.speak(u);
+  },
+  stop() { if (this.synth) this.synth.cancel(); },
+  Rec: window.SpeechRecognition || window.webkitSpeechRecognition,
+  active: null,
+  listen(input, btn) {
+    if (!this.Rec) return toast('זיהוי דיבור לא נתמך בדפדפן הזה. נסה Chrome.');
+    if (this.active) { this.active.stop(); return; }
+    const r = new this.Rec(); r.lang = 'he-IL'; r.interimResults = false;
+    this.active = r; btn.classList.add('rec'); this.stop();
+    r.onresult = e => {
+      const txt = [...e.results].map(x => x[0].transcript).join(' ');
+      input.value = (input.value ? input.value + ' ' : '') + txt;
+    };
+    r.onerror = e => toast(e.error === 'not-allowed' ? 'אין הרשאת מיקרופון' : 'לא נקלט, נסה שוב');
+    r.onend = () => { btn.classList.remove('rec'); this.active = null; };
+    r.start();
+  }
+};
+
+// 3. StorageManager: localStorage
+const StorageManager = {
+  KEY: 'imt_sessions_v1', PKEY: 'imt_prefs_v1',
+  defaults: { metronomeSpeedBpm: 60, audioVolume: 0.8, enableSpeechPrompts: true, clickSoundType: 'snap' },
+  prefs: null,
+  read(k, fb) { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } },
+  write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  saveSession(s) { const h = this.getHistory(); h.unshift(s); this.write(this.KEY, h.slice(0, 200)); },
+  getHistory() { return this.read(this.KEY, []); },
+  clear() { this.write(this.KEY, []); },
+  getPreferences() { return this.prefs = { ...this.defaults, ...this.read(this.PKEY, {}) }; },
+  setPref(k, v) { this.prefs[k] = v; this.write(this.PKEY, this.prefs); }
+};
+StorageManager.getPreferences();
+
+// 4. FlowController: screens, prompts, session state
+const STEP_ORDER = [0, 1, 2, 3, 4, 5, 6, 6.5, 7, 8];
+const PROMPTS = {
+  1: 'מה הרגש שעולה בך עכשיו? בחר מהרשימה או כתוב במילה אחת.',
+  2: 'באיזו עוצמה הרגש הזה מורגש כרגע? בין 1 ל-10.',
+  3: 'מתי הפעם המוקדמת ביותר שאתה זוכר שהרגשת ככה? מקם את זה בזמן, במקום ועם מי היית.',
+  4: 'הנח שתי רגליים יציבות על הרצפה, כפות ידיים נחות על הירכיים. בסיבוב הזה נתופף לסירוגין ימין שמאל בעיניים עצומות.',
+  5: 'עצום עיניים ותן למחשבות לזרום חופשי מבלי לעצור אותן.',
+  6: 'מה שמת לב? מה ראית או הבחנת בזרם המחשבות בדקה הזו?',
+  6.5: 'קח את מה ששמת לב אליו עכשיו, החזק אותו בקצרה במחשבה, ונמשיך מיד לסיבוב הבא.',
+  7: 'כשאתה נזכר כעת באירוע המקורי ההוא, במקום ההוא עם אותו אדם, האם זה עדיין מפעיל או נוגע בך?'
+};
+const FlowController = {
+  currentStep: 0,
+  session: null,
+  startedAt: 0,
+  newSession() {
+    this.session = {
+      id: String(Date.now()), timestamp: new Date().toISOString(), emotion: '', initialRating: 0,
+      anchor: { timeAndPlace: '', person: '', coreThought: '' }, rounds: [],
+      finalIntegration: { rootStillTriggers: false, rootStressLevel: 0, newLearning: '' }, durationSeconds: 0
+    };
+    this.startedAt = Date.now();
+    $$('input[type=text],textarea').forEach(i => i.value = '');
+  },
+  goToStep(n) {
+    this.currentStep = n;
+    $$('.screen').forEach(s => s.classList.toggle('on', Number(s.dataset.step) === n));
+    $('#prog').style.width = (n === 0 ? 0 : Math.min(100, STEP_ORDER.indexOf(n) / (STEP_ORDER.length - 1) * 100)) + '%';
+    window.scrollTo(0, 0);
+    if (PROMPTS[n]) SpeechEngine.speak(PROMPTS[n]);
+    const hook = Screens[n]; if (hook) hook();
+  }
+};
+
+// Bilateral timer
+const Tapper = {
+  iv: null, sec: null, left: 0, side: 'left',
+  start() {
+    this.stop();
+    this.left = ROUND_SECONDS; this.side = 'left';
+    this.render();
+    const period = 60000 / StorageManager.prefs.metronomeSpeedBpm;
+    this.beat();
+    this.iv = setInterval(() => this.beat(), period);
+    this.sec = setInterval(() => { this.left--; this.render(); if (this.left <= 0) this.finish(); }, 1000);
+    try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => this.lock = l).catch(() => {}); } catch {}
+  },
+  beat() {
+    const s = this.side;
+    AudioEngine.playFingerClick(s);
+    $('#orbL').classList.toggle('lit', s === 'left');
+    $('#orbR').classList.toggle('lit', s === 'right');
+    const fig = $('#figure'); fig.classList.toggle('tapL', s === 'left'); fig.classList.toggle('tapR', s === 'right');
+    this.side = s === 'left' ? 'right' : 'left';
+  },
+  render() {
+    const m = Math.floor(this.left / 60), s = this.left % 60;
+    $('#timer').textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    $('#ring').style.width = ((ROUND_SECONDS - this.left) / ROUND_SECONDS * 100) + '%';
+  },
+  stop() {
+    clearInterval(this.iv); clearInterval(this.sec); this.iv = this.sec = null;
+    $('#orbL').classList.remove('lit'); $('#orbR').classList.remove('lit');
+    if (this.lock) { this.lock.release().catch(() => {}); this.lock = null; }
+  },
+  finish() {
+    this.stop();
+    AudioEngine.playSoftChime();
+    if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+    setTimeout(() => FlowController.goToStep(6), 1200);
+  }
+};
+
+// posture screen idle animation
+let figIv = null;
+function figureLoop(on) {
+  clearInterval(figIv); figIv = null;
+  const fig = $('#figure'); fig.classList.remove('tapL', 'tapR');
+  if (!on) return;
+  let l = true;
+  figIv = setInterval(() => { fig.classList.toggle('tapL', l); fig.classList.toggle('tapR', !l); l = !l; }, 600);
+}
+
+let bridgeIv = null;
+const Screens = {
+  0() { renderHistory($('#homeHist'), 3); },
+  2() { $('#emoName').textContent = FlowController.session.emotion; },
+  4() {
+    const r = FlowController.session.rounds.length + 1;
+    $('#roundLabel4').textContent = 'סיבוב ' + r;
+    figureLoop(true);
+  },
+  5() {
+    figureLoop(false);
+    $('#roundLabel5').textContent = 'סיבוב ' + (FlowController.session.rounds.length + 1);
+    setTimeout(() => Tapper.start(), StorageManager.prefs.enableSpeechPrompts ? 2600 : 300);
+  },
+  6() {
+    $('#obsText').value = '';
+    $('#thoughtQuote').textContent = FlowController.session.anchor.coreThought || FlowController.session.emotion;
+  },
+  6.5() {
+    const last = FlowController.session.rounds.at(-1);
+    const bo = $('#bridgeObs');
+    bo.textContent = last && last.observations ? '"' + last.observations + '"' : '';
+    bo.classList.toggle('hidden', !bo.textContent);
+    let n = 6;
+    const tick = () => { $('#bridgeCount').textContent = 'הסיבוב הבא מתחיל בעוד ' + n + ' שניות'; if (n-- <= 0) { clearInterval(bridgeIv); FlowController.goToStep(5); } };
+    clearInterval(bridgeIv); tick(); bridgeIv = setInterval(tick, 1000);
+  },
+  7() {
+    const a = FlowController.session.anchor;
+    $('#rootQuote').textContent = [a.timeAndPlace, a.person].filter(Boolean).join(' · ') || FlowController.session.emotion;
+    $('#ynNo').classList.remove('sel'); $('#ynYes').classList.remove('sel');
+    $('#rootRateWrap').classList.add('hidden');
+    $$('#rootNums .num').forEach(b => b.style.background = '');
+  },
+  8() { renderSummary(FlowController.session); renderHistory($('#histList'), 50); }
+};
+
+// UI builders
+function numButtons(el, from, to, onPick) {
+  for (let i = from; i <= to; i++) {
+    const b = document.createElement('button');
+    b.className = 'num'; b.textContent = i; b.type = 'button';
+    b.onclick = () => { AudioEngine.init(); AudioEngine.tick(); onPick(i, b); };
+    el.appendChild(b);
+  }
+}
+EMOTIONS.forEach(e => {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.textContent = e; b.type = 'button';
+  b.onclick = () => pickEmotion(e);
+  $('#emoChips').appendChild(b);
+});
+function pickEmotion(e) {
+  e = (e || '').trim(); if (!e) return toast('בחר רגש או כתוב מילה');
+  AudioEngine.init(); AudioEngine.tick();
+  FlowController.session.emotion = e;
+  FlowController.goToStep(2);
+}
+$('#emoNext').onclick = () => pickEmotion($('#emoText').value);
+$('#emoText').addEventListener('keydown', e => { if (e.key === 'Enter') pickEmotion(e.target.value); });
+
+numButtons($('#baseNums'), 1, 10, n => { FlowController.session.initialRating = n; FlowController.goToStep(3); });
+
+$('#anNext').onclick = () => {
+  const a = FlowController.session.anchor;
+  a.timeAndPlace = $('#anTime').value.trim();
+  a.person = $('#anPerson').value.trim();
+  a.coreThought = $('#anThought').value.trim();
+  if (!a.coreThought && !a.timeAndPlace) return toast('כתוב לפחות את המחשבה המרכזית');
+  AudioEngine.tick();
+  FlowController.goToStep(4);
+};
+
+$('#btnBegin').onclick = () => { AudioEngine.init(); FlowController.goToStep(5); };
+$('#btnStop').onclick = () => { Tapper.stop(); AudioEngine.playSoftChime(); FlowController.goToStep(6); };
+
+numButtons($('#reNums'), 0, 10, n => {
+  const s = FlowController.session;
+  s.rounds.push({ roundNumber: s.rounds.length + 1, observations: $('#obsText').value.trim(), ratingAfter: n });
+  FlowController.goToStep(n > 0 ? 6.5 : 7);
+});
+$('#btnBridge').onclick = () => { clearInterval(bridgeIv); FlowController.goToStep(5); };
+
+$('#ynNo').onclick = () => {
+  const f = FlowController.session.finalIntegration;
+  f.rootStillTriggers = false; f.rootStressLevel = 0;
+  $('#ynNo').classList.add('sel'); $('#ynYes').classList.remove('sel');
+  $('#rootRateWrap').classList.add('hidden');
+  SpeechEngine.speak('מה אתה לומד חדש על עצמך מתוך התהליך הזה?');
+};
+$('#ynYes').onclick = () => {
+  FlowController.session.finalIntegration.rootStillTriggers = true;
+  $('#ynYes').classList.add('sel'); $('#ynNo').classList.remove('sel');
+  $('#rootRateWrap').classList.remove('hidden');
+};
+numButtons($('#rootNums'), 0, 10, (n, b) => {
+  FlowController.session.finalIntegration.rootStressLevel = n;
+  $$('#rootNums .num').forEach(x => x.style.background = '');
+  b.style.background = 'var(--accent)';
+});
+$('#btnMore').onclick = () => {
+  const a = FlowController.session.anchor;
+  a.coreThought = [a.timeAndPlace, a.person].filter(Boolean).join(', ') || a.coreThought;
+  FlowController.goToStep(5);
+};
+$('#btnFinish').onclick = () => {
+  const s = FlowController.session;
+  s.finalIntegration.newLearning = $('#learnText').value.trim();
+  s.durationSeconds = Math.round((Date.now() - FlowController.startedAt) / 1000);
+  StorageManager.saveSession(s);
+  AudioEngine.playSoftChime();
+  FlowController.goToStep(8);
+};
+$('#btnAgain').onclick = startFlow;
+$('#btnStart').onclick = startFlow;
+$('#btnHome').onclick = () => {
+  if (FlowController.currentStep > 0 && FlowController.currentStep < 8 && !confirm('לצאת מהתהליך? הוא לא יישמר.')) return;
+  Tapper.stop(); clearInterval(bridgeIv); figureLoop(false); SpeechEngine.stop();
+  FlowController.goToStep(0);
+};
+function startFlow() { AudioEngine.init(); FlowController.newSession(); FlowController.goToStep(1); }
+
+$$('.mic').forEach(b => b.onclick = () => SpeechEngine.listen($('#' + b.dataset.target), b));
+
+// Summary + history
+function series(s) { return [s.initialRating, ...s.rounds.map(r => r.ratingAfter)]; }
+function sparkSvg(vals, w = 320, h = 150, pad = 22) {
+  const n = vals.length, sx = i => n === 1 ? w / 2 : pad + i * (w - 2 * pad) / (n - 1), sy = v => h - pad - v * (h - 2 * pad) / 10;
+  const pts = vals.map((v, i) => sx(i) + ',' + sy(v)).join(' ');
+  let g = '';
+  for (let y = 0; y <= 10; y += 5) g += `<line x1="${pad}" x2="${w - pad}" y1="${sy(y)}" y2="${sy(y)}" stroke="#3b5568" stroke-dasharray="3 5"/><text x="4" y="${sy(y) + 4}" fill="#a9bcc4" font-size="11">${y}</text>`;
+  const area = n > 1 ? `<polygon points="${sx(0)},${sy(0)} ${pts} ${sx(n - 1)},${sy(0)}" fill="rgba(143,211,182,.14)"/>` : '';
+  const dots = vals.map((v, i) => `<circle cx="${sx(i)}" cy="${sy(v)}" r="5" fill="${i === 0 ? '#f2c48d' : '#8fd3b6'}"/><text x="${sx(i)}" y="${sy(v) - 10}" text-anchor="middle" fill="#eef3f1" font-size="12">${v}</text>`).join('');
+  return g + area + `<polyline points="${pts}" fill="none" stroke="#8fd3b6" stroke-width="3" stroke-linejoin="round"/>` + dots;
+}
+function esc(t) { return String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function renderSummary(s) {
+  $('#spark').innerHTML = sparkSvg(series(s));
+  const mins = Math.max(1, Math.round(s.durationSeconds / 60));
+  $('#sumCard').innerHTML = `
+    <div><b>${esc(s.emotion)}</b> · ${series(s).join(' → ')}</div>
+    <p class="sub">${s.rounds.length} סיבובים · ${mins} דק'</p>
+    ${s.anchor.coreThought ? `<p class="sub">מחשבה: ${esc(s.anchor.coreThought)}</p>` : ''}
+    ${s.finalIntegration.newLearning ? `<div class="quote" style="margin-top:8px">${esc(s.finalIntegration.newLearning)}</div>` : ''}`;
+}
+function renderHistory(el, max) {
+  const h = StorageManager.getHistory().slice(0, max);
+  if (!h.length) { el.innerHTML = ''; return; }
+  el.innerHTML = (el.id === 'homeHist' ? '<p class="sub">תהליכים אחרונים</p>' : '') + h.map(s => {
+    const d = new Date(s.timestamp);
+    return `<div class="card"><div><b>${esc(s.emotion)}</b><br><small>${d.toLocaleDateString('he-IL')} ${d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })} · ${s.rounds.length} סיבובים</small></div>
+      <span class="badge">${series(s).join(' → ')}</span></div>`;
+  }).join('');
+}
+
+// Settings
+const dlg = $('#dlg');
+$('#btnSettings').onclick = () => {
+  const p = StorageManager.prefs;
+  $('#setBpm').value = p.metronomeSpeedBpm; $('#bpmVal').textContent = p.metronomeSpeedBpm;
+  $('#setVol').value = p.audioVolume; $('#setSound').value = p.clickSoundType; $('#setTts').checked = p.enableSpeechPrompts;
+  dlg.showModal();
+};
+$('#setBpm').oninput = e => { StorageManager.setPref('metronomeSpeedBpm', +e.target.value); $('#bpmVal').textContent = e.target.value; };
+$('#setVol').oninput = e => StorageManager.setPref('audioVolume', +e.target.value);
+$('#setSound').onchange = e => { StorageManager.setPref('clickSoundType', e.target.value); AudioEngine.init(); AudioEngine.playFingerClick('left'); };
+$('#setTts').onchange = e => StorageManager.setPref('enableSpeechPrompts', e.target.checked);
+$('#setTest').onclick = () => { AudioEngine.init(); AudioEngine.playFingerClick('left'); setTimeout(() => AudioEngine.playFingerClick('right'), 500); setTimeout(() => AudioEngine.playSoftChime(), 1100); };
+$('#setClear').onclick = () => { if (confirm('למחוק את כל היומן מהמכשיר?')) { StorageManager.clear(); renderHistory($('#homeHist'), 3); toast('היומן נמחק'); } };
+$('#setClose').onclick = () => dlg.close();
+
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2400); }
+
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+FlowController.goToStep(0);
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+window.__app = { FlowController, StorageManager, Tapper };
+</script>
+</body>
+</html>
