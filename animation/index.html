@@ -1,0 +1,292 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[{"id":"ground","type":"string","label":"Background (transparent or hex)","default":"transparent"}]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      /*
+        Seated stick man tapping left / right thigh (bilateral tapping), 8 s seamless loop.
+        Every position is a periodic function of timeline time t (period 8 s), so frame 0
+        follows the last frame with no seam. Taps land at t = 0.5, 1.5, ... (left on even
+        seconds + 0.5, right on odd seconds + 0.5): one tap per second.
+        Palette from design/brief.md: line #e9f1ee, mint #8fd3b6, sand #f2c48d, night #16222b.
+        For MP4 (no alpha) render with --variables '{"ground":"#16222b"}'.
+      */
+      :root {
+        --ground: transparent;
+        --line: #e9f1ee;
+        --mint: #8fd3b6;
+        --sand: #f2c48d;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        background: transparent;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+      }
+      #ground {
+        position: absolute;
+        inset: 0;
+        background: var(--ground);
+      }
+      #figure {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1080px;
+      }
+      #figure .ln {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: 12;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      #figure .chair {
+        stroke-opacity: 0.34;
+      }
+      #figure .eye {
+        stroke-width: 7;
+      }
+      #figure .ring {
+        fill: none;
+        stroke: var(--mint);
+        stroke-width: 5;
+        stroke-linecap: round;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="8"
+      data-width="1080"
+      data-height="1080"
+    >
+      <div id="ground" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+
+      <svg
+        id="figure"
+        class="clip"
+        data-start="0"
+        data-duration="8"
+        data-track-index="1"
+        viewBox="0 0 1080 1080"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <radialGradient id="glow">
+            <stop offset="0" stop-color="#f2c48d" stop-opacity="0.55" />
+            <stop offset="0.45" stop-color="#8fd3b6" stop-opacity="0.22" />
+            <stop offset="1" stop-color="#8fd3b6" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+
+        <g id="rig" transform="translate(540 565) scale(1.15) translate(-540 -565)">
+        <!-- floor shadow -->
+        <ellipse id="shadow" cx="540" cy="874" rx="230" ry="16" fill="#e9f1ee" fill-opacity="0.07" />
+
+        <!-- chair (behind the body) -->
+        <g id="chair">
+          <path class="ln chair" d="M 392 472 Q 540 452 688 472" />
+          <path class="ln chair" d="M 392 472 L 392 664" />
+          <path class="ln chair" d="M 688 472 L 688 664" />
+          <path class="ln chair" d="M 372 668 L 708 668" />
+          <path class="ln chair" d="M 390 670 L 390 866" />
+          <path class="ln chair" d="M 690 670 L 690 866" />
+        </g>
+
+        <!-- tap glow + ripples (under the hands) -->
+        <circle id="glowL" cx="455" cy="656" r="80" fill="url(#glow)" opacity="0" />
+        <circle id="glowR" cx="625" cy="656" r="80" fill="url(#glow)" opacity="0" />
+        <ellipse id="ringL1" class="ring" cx="455" cy="656" rx="10" ry="4" opacity="0" />
+        <ellipse id="ringL2" class="ring" cx="455" cy="656" rx="10" ry="4" opacity="0" />
+        <ellipse id="ringR1" class="ring" cx="625" cy="656" rx="10" ry="4" opacity="0" />
+        <ellipse id="ringR2" class="ring" cx="625" cy="656" rx="10" ry="4" opacity="0" />
+
+        <!-- legs: hip -> knee -> ankle, feet flat on the floor -->
+        <path id="legL" class="ln" d="M 540 636 L 440 656 L 438 866 L 404 866" />
+        <path id="legR" class="ln" d="M 540 636 L 640 656 L 642 866 L 676 866" />
+
+        <!-- spine + shoulders -->
+        <path id="spine" class="ln" d="M 540 384 L 540 636" />
+        <path id="shoulders" class="ln" d="M 478 438 Q 540 416 602 438" />
+
+        <!-- arms: shoulder -> elbow -> hand -->
+        <path id="armL" class="ln" d="M 478 438 L 418 540 L 455 646" />
+        <path id="armR" class="ln" d="M 602 438 L 662 540 L 625 646" />
+
+        <!-- head with closed eyes -->
+        <g id="head">
+          <circle class="ln" cx="540" cy="318" r="58" />
+          <path class="ln eye" d="M 507 320 Q 518 329 529 320" />
+          <path class="ln eye" d="M 551 320 Q 562 329 573 320" />
+        </g>
+        </g>
+      </svg>
+    </div>
+    <script>
+      (function () {
+        var LOOP = 8; // seconds; breath cycle = 8 s, tap cycle per hand = 2 s
+        var TAU = Math.PI * 2;
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var el = {
+          spine: $("spine"),
+          shoulders: $("shoulders"),
+          armL: $("armL"),
+          armR: $("armR"),
+          head: $("head"),
+          glowL: $("glowL"),
+          glowR: $("glowR"),
+          rings: [$("ringL1"), $("ringL2"), $("ringR1"), $("ringR2")],
+        };
+
+        var UPPER = 124; // upper arm length
+        var FORE = 112; // forearm length
+        var HAND_REST_Y = 646; // hand rests on the thigh line
+        var LIFT = 24; // hand lift height in px
+
+        function mod(a, n) {
+          return ((a % n) + n) % n;
+        }
+
+        // Two-bone IK: elbow on the outer side (side = -1 left, +1 right).
+        function elbow(sx, sy, hx, hy, side) {
+          var dx = hx - sx,
+            dy = hy - sy;
+          var d = Math.min(Math.sqrt(dx * dx + dy * dy), UPPER + FORE - 0.01);
+          var a = (UPPER * UPPER - FORE * FORE + d * d) / (2 * d);
+          var h = Math.sqrt(Math.max(UPPER * UPPER - a * a, 0));
+          var mx = sx + (a * dx) / d,
+            my = sy + (a * dy) / d;
+          // perpendicular pointing outward
+          var px = -dy / d,
+            py = dx / d;
+          if (px * side < 0) {
+            px = -px;
+            py = -py;
+          }
+          return [mx + px * h, my + py * h];
+        }
+
+        // Hand lift for one hand. phase = seconds since this hand's last tap (0..2).
+        // Rests, rises softly, then falls to the next tap at phase = 2.
+        function lift(phase) {
+          var p = phase / 2;
+          if (p < 0.45) return 0;
+          var q = (p - 0.45) / 0.55; // 0..1
+          // smooth rise, slightly quicker fall onto the thigh
+          return LIFT * Math.pow(Math.sin(Math.PI * Math.pow(q, 1.35)), 1.6);
+        }
+
+        function ripple(rings, glow, age, cx, cy) {
+          // age = seconds since impact (0..2)
+          for (var i = 0; i < 2; i++) {
+            var a = age - i * 0.18;
+            var r = rings[i];
+            if (a < 0 || a > 1.1) {
+              r.setAttribute("opacity", "0");
+              continue;
+            }
+            var k = a / 1.1;
+            var e = 1 - Math.pow(1 - k, 3); // ease out
+            var rx = 14 + 74 * e;
+            r.setAttribute("rx", rx.toFixed(2));
+            r.setAttribute("ry", (rx * 0.36).toFixed(2));
+            r.setAttribute("cx", cx);
+            r.setAttribute("cy", cy);
+            r.setAttribute("opacity", ((1 - k) * (i === 0 ? 0.85 : 0.5)).toFixed(3));
+          }
+          var g = age < 0.9 ? Math.pow(1 - age / 0.9, 2) : 0;
+          glow.setAttribute("opacity", g.toFixed(3));
+        }
+
+        function draw(t) {
+          t = mod(t, LOOP);
+          var breath = (1 - Math.cos((TAU * t) / LOOP)) / 2; // 0 exhaled .. 1 inhaled
+          var rise = 7 * breath;
+          var tilt = 1.8 * Math.sin((TAU * t) / LOOP - 0.6);
+
+          // torso
+          var neckY = 384 - rise;
+          el.spine.setAttribute("d", "M 540 " + neckY.toFixed(2) + " L 540 636");
+          var shY = 438 - rise;
+          var shW = 62 + 1.5 * breath; // chest opens a touch
+          var sLx = 540 - shW,
+            sRx = 540 + shW;
+          el.shoulders.setAttribute(
+            "d",
+            "M " + sLx.toFixed(2) + " " + shY.toFixed(2) +
+              " Q 540 " + (416 - rise).toFixed(2) + " " + sRx.toFixed(2) + " " + shY.toFixed(2)
+          );
+
+          // head: follows the chest, tiny tilt around the neck
+          el.head.setAttribute(
+            "transform",
+            "translate(0 " + (-rise).toFixed(2) + ") rotate(" + tilt.toFixed(3) + " 540 380)"
+          );
+
+          // hands: left taps at 0.5, 2.5, 4.5, 6.5; right at 1.5, 3.5, 5.5, 7.5
+          var ageL = mod(t - 0.5, 2);
+          var ageR = mod(t - 1.5, 2);
+          var hLx = 455,
+            hRx = 625;
+          var hLy = HAND_REST_Y - lift(ageL);
+          var hRy = HAND_REST_Y - lift(ageR);
+
+          var eL = elbow(sLx, shY, hLx, hLy, -1);
+          var eR = elbow(sRx, shY, hRx, hRy, 1);
+          el.armL.setAttribute(
+            "d",
+            "M " + sLx.toFixed(2) + " " + shY.toFixed(2) + " L " + eL[0].toFixed(2) + " " + eL[1].toFixed(2) +
+              " L " + hLx + " " + hLy.toFixed(2)
+          );
+          el.armR.setAttribute(
+            "d",
+            "M " + sRx.toFixed(2) + " " + shY.toFixed(2) + " L " + eR[0].toFixed(2) + " " + eR[1].toFixed(2) +
+              " L " + hRx + " " + hRy.toFixed(2)
+          );
+
+          ripple([el.rings[0], el.rings[1]], el.glowL, ageL, hLx, 656);
+          ripple([el.rings[2], el.rings[3]], el.glowR, ageR, hRx, 656);
+        }
+
+        window.__imtStickmanDraw = draw; // for inline reuse in the app later
+
+        var clock = { t: 0 };
+        var tl = gsap.timeline({ paused: true });
+        tl.to(clock, {
+          t: LOOP,
+          duration: LOOP,
+          ease: "none",
+          onUpdate: function () {
+            draw(clock.t);
+          },
+        }, 0);
+        draw(0);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+# Local agent tooling from the HyperFrames skills install (2026-11-06), not part of the app
+.agents/
+.claude/
+skills-lock.json
+.DS_Store
+design/logs/
