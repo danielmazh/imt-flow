@@ -1,5 +1,5 @@
 // Bump VERSION on every release so clients pick up the new files.
-const VERSION = 'imt-flow-v2';
+const VERSION = 'imt-flow-v3';
 const FILES = ['./', 'index.html', 'manifest.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'assets/stickman-tap.webm', 'assets/stickman-tap.mp4', 'assets/stickman-tap.jpg'];
 // Google Fonts is cross-origin, so it is not cached here: offline the page falls back to system fonts.
